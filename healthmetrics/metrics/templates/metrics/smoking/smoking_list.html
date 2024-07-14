@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Smoking Data List{% endblock %}
+
+{% block content %}
+    <h1>Smoking Data List</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Start Date</th>
+                <th>Quit Date</th>
+                <th>Cost per Pack</th>
+                <th>Cigarettes per Day</th>
+                <th>Time Since Quit</th>
+                <th>Money Saved</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for smoking in smokings %}
+            <tr>
+                <td>{{ smoking.user.username }}</td>
+                <td>{{ smoking.start_date }}</td>
+                <td>{{ smoking.quit_date }}</td>
+                <td>{{ smoking.cost_per_pack }}</td>
+                <td>{{ smoking.cigarettes_per_day }}</td>
+                <td>{{ smoking.time_since_quit_breakdown.years_months_days_hours_minutes_seconds }}</td>
+                <td>{{ smoking.money_saved }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

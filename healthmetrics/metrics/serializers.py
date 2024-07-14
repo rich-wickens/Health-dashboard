@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Smoking
+from .models import Smoking, Weight
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.contrib.auth.models import User
@@ -35,3 +35,21 @@ class SmokingSerializer(serializers.ModelSerializer):
 
     def get_money_saved(self, obj):
         return obj.money_saved()
+    
+class WeightSerializer(serializers.ModelSerializer):
+    bmi = serializers.FloatField(read_only=True)
+    bmi_category = serializers.SerializerMethodField()
+    height = serializers.FloatField(help_text="Height in meters")
+    weight = serializers.FloatField(help_text="Weight in kilograms")
+    waist_circumference = serializers.FloatField(required=False, help_text="Waist circumference in CMs")
+    is_waist_circumference_healthy = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Weight
+        fields = ['id', 'user', 'date', 'height', 'weight', 'bmi', 'ethnicity', 'bmi_category', 'waist_circumference', 'is_waist_circumference_healthy']
+
+    def get_bmi_category(self, obj):
+        return obj.get_bmi_category()
+    
+    def get_is_waist_circumference_healthy(self, obj):
+        return obj.is_waist_circumference_healthy()

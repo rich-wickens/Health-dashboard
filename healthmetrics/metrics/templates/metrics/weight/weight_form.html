@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Weight Data{% endblock %}
+
+{% block content %}
+    <h1>Add Weight Data</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul class="errorlist">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}
+
+{% comment %} {% extends "base.html" %}
+
+{% block title %}Add Weight Entry{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Add Weight Entry</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_height" class="form-label">Height (meters)</label>
+                <input type="text" class="form-control" id="id_height" name="height" required>
+            </div>
+            <div class="mb-3">
+                <label for="id_weight" class="form-label">Weight (kilograms)</label>
+                <input type="text" class="form-control" id="id_weight" name="weight" required>
+            </div>
+            <div class="mb-3">
+                <label for="id_waist_circumference" class="form-label">Waist Circumference (cm)</label>
+                <input type="text" class="form-control" id="id_waist_circumference" name="waist_circumference">
+            </div>
+            <div class="mb-3">
+                <label for="id_ethnicity" class="form-label">Ethnicity</label>
+                <select class="form-control" id="id_ethnicity" name="ethnicity" required>
+                    <option value="">Select...</option>
+                    <option value="Asian or Asian British">Asian or Asian British</option>
+                    <option value="Black, African, Caribbean or Black British">Black, African, Caribbean or Black British</option>
+                    <option value="Middle Eastern">Middle Eastern</option>
+                    <option value="Mixed or multiple ethnicities with an Asian, Black or Middle Eastern background">Mixed or multiple ethnicities with an Asian, Black or Middle Eastern background</option>
+                    <option value="White">White</option>
+                    <option value="Other ethnic group">Other ethnic group</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %} {% endcomment %}

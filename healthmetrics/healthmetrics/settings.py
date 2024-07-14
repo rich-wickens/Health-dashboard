@@ -155,7 +155,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'metrics/static'),
+    BASE_DIR / "static",
 ]
 
 # Default primary key field type
@@ -173,3 +173,5 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
 }
+
+LOGIN_URL = '/login/'

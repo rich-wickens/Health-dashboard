@@ -2,8 +2,9 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from datetime import date
 from decimal import Decimal
-from .models import Smoking
+from .models import Smoking, Weight
 from freezegun import freeze_time
+from django.core.exceptions import ValidationError
 
 class SmokingModelTests(TestCase):
 
@@ -93,3 +94,126 @@ class SmokingModelTests(TestCase):
         self.assertGreaterEqual(time_breakdown['years_months_days_hours_minutes_seconds']['hours'], 0)
         self.assertGreaterEqual(time_breakdown['years_months_days_hours_minutes_seconds']['minutes'], 0)
         self.assertGreaterEqual(time_breakdown['years_months_days_hours_minutes_seconds']['seconds'], 0)
+
+class WeightModelTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+    def test_bmi_calculation(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            ethnicity='White'
+        )
+        self.assertAlmostEqual(weight_entry.bmi, 22.86, places=2)
+
+    def test_get_bmi_category(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            ethnicity='White'
+        )
+        self.assertEqual(weight_entry.get_bmi_category(), 'Healthy')
+
+    def test_bmi_category_asian_black(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.65,
+            weight=70.0,
+            ethnicity='Asian'
+        )
+        self.assertEqual(weight_entry.get_bmi_category(), 'Overweight')
+
+    def test_waist_circumference_healthy(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            waist_circumference=80.0,
+            ethnicity='White'
+        )
+        self.assertTrue(weight_entry.is_waist_circumference_healthy())
+
+    def test_waist_circumference_unhealthy(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            waist_circumference=90.0,
+            ethnicity='White'
+        )
+        self.assertFalse(weight_entry.is_waist_circumference_healthy())
+
+    def test_waist_circumference_none(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            waist_circumference=None,
+            ethnicity='White'
+        )
+        self.assertIsNone(weight_entry.is_waist_circumference_healthy())
+
+    def test_string_representation(self):
+        weight_entry = Weight.objects.create(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            ethnicity='White'
+        )
+        expected_str = f"{self.user.username} - {weight_entry.date} - BMI: {weight_entry.bmi:.2f} - {weight_entry.get_bmi_category()}"
+        self.assertEqual(str(weight_entry), expected_str)
+
+    def test_height_zero_validation(self):
+        weight_entry = Weight(
+            user=self.user,
+            date=date.today(),
+            height=0.0,
+            weight=70.0,
+            ethnicity='White'
+        )
+        with self.assertRaises(ValidationError):
+            weight_entry.save()
+
+    def test_negative_height_validation(self):
+        weight_entry = Weight(
+            user=self.user,
+            date=date.today(),
+            height=-1.75,
+            weight=70.0,
+            ethnicity='White'
+        )
+        with self.assertRaises(ValidationError):
+            weight_entry.save()
+
+    def test_negative_weight_validation(self):
+        weight_entry = Weight(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=-70.0,
+            ethnicity='White'
+        )
+        with self.assertRaises(ValidationError):
+            weight_entry.save()
+
+    def test_ethnicity_choice_validation(self):
+        weight_entry = Weight(
+            user=self.user,
+            date=date.today(),
+            height=1.75,
+            weight=70.0,
+            ethnicity='Invalid'
+        )
+        with self.assertRaises(ValidationError):
+            weight_entry.save()        
