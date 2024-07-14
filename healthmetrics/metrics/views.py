@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User, AnonymousUser
-from .models import Smoking
-from .serializers import SmokingSerializer
+from .models import Smoking, Weight
+from .serializers import SmokingSerializer, WeightSerializer
 from .forms import SmokingForm
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -69,3 +69,13 @@ def smoking_list_view(request):
         smokings = Smoking.objects.filter(user_id=user_id)
         return render(request, 'metrics/smoking_list.html', {'smokings': smokings})
     return render(request, 'metrics/smoking_list.html', {'error': 'User ID is required'})
+
+class WeightViewSet(viewsets.ModelViewSet):
+    queryset = Weight.objects.all()
+    serializer_class = WeightSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Weight.objects.all()
+        return Weight.objects.filter(user=user)
