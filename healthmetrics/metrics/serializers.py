@@ -41,10 +41,15 @@ class WeightSerializer(serializers.ModelSerializer):
     bmi_category = serializers.SerializerMethodField()
     height = serializers.FloatField(help_text="Height in meters")
     weight = serializers.FloatField(help_text="Weight in kilograms")
+    waist_circumference = serializers.FloatField(required=False, help_text="Waist circumference in CMs")
+    is_waist_circumference_healthy = serializers.SerializerMethodField()
 
     class Meta:
         model = Weight
-        fields = ['id', 'user', 'date', 'height', 'weight', 'bmi', 'ethnicity', 'bmi_category']
+        fields = ['id', 'user', 'date', 'height', 'weight', 'bmi', 'ethnicity', 'bmi_category', 'waist_circumference', 'is_waist_circumference_healthy']
 
     def get_bmi_category(self, obj):
         return obj.get_bmi_category()
+    
+    def get_is_waist_circumference_healthy(self, obj):
+        return obj.is_waist_circumference_healthy()

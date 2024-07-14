@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Weight Entries{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Weight Entries</h2>
+    </div>
+    <div class="card-body">
+        {% if weights %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Date</th>
+                        <th>Height (meters)</th>
+                        <th>Weight (kilograms)</th>
+                        <th>BMI</th>
+                        <th>BMI Category</th>
+                        <th>Waist Circumference Healthy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for weight in weights %}
+                        <tr>
+                            <td>{{ weight.user.username }}</td>
+                            <td>{{ weight.date }}</td>
+                            <td>{{ weight.height }}</td>
+                            <td>{{ weight.weight }}</td>
+                            <td>{{ weight.bmi }}</td>
+                            <td>{{ weight.get_bmi_category }}</td>
+                            <td>
+                                {% if weight.is_waist_circumference_healthy %}
+                                    <span style="color: green;">True</span>
+                                {% elif weight.is_waist_circumference_healthy is not none %}
+                                    <span style="color: red;">False</span>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No weight entries found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

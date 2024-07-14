@@ -16,8 +16,10 @@ class Smoking(models.Model):
     def __str__(self):
         # String representation of the model instance
         return f"{self.user.username} - Quit on {self.quit_date}"
-    
+        
     def clean(self):
+        if self.start_date is None or self.quit_date is None:
+            raise ValidationError(_('Start date and quit date are required.'))
         if self.quit_date < self.start_date:
             raise ValidationError(_('Quit date cannot be before start date.'))
         if self.cost_per_pack <= 0:
@@ -168,10 +170,20 @@ class Weight(models.Model):
     weight = models.FloatField()  # weight in kilograms
     bmi = models.FloatField(blank=True, null=True)
     ethnicity = models.CharField(max_length=50, choices=ETHNICITY_CHOICES, default=PREFER_NOT_TO_SAY)
+    waist_circumference = models.FloatField(null=True, blank=True) # waist circumferance in CMs
 
     def save(self, *args, **kwargs):
+        self.clean()
         self.bmi = self.calculate_bmi()
         super().save(*args, **kwargs)
+
+    def clean(self):
+        if self.height <= 0:
+            raise ValidationError(_('Height must be greater than zero.'))
+        if self.weight <= 0:
+            raise ValidationError(_('Weight must be greater than zero.'))
+        if self.ethnicity not in dict(self.ETHNICITY_CHOICES):
+            raise ValidationError(_('Invalid ethnicity choice.'))
 
     def calculate_bmi(self):
         if self.height > 0:
@@ -201,6 +213,11 @@ class Weight(models.Model):
                 return 'Overweight'
             else:
                 return 'Obese'
+            
+    def is_waist_circumference_healthy(self):
+        if self.waist_circumference is not None and self.height > 0:
+            return self.waist_circumference < (self.height * 50) # height in meters, waist circumference in cms
+        return None
 
     def __str__(self):
         return f"{self.user.username} - {self.date} - BMI: {self.bmi:.2f} - {self.get_bmi_category()}"

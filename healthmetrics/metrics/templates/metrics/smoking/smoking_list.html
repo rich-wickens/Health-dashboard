@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Smoking Data List</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Smoking Data List{% endblock %}
+
+{% block content %}
     <h1>Smoking Data List</h1>
-    <table>
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>User</th>
@@ -32,5 +30,4 @@
             {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+{% endblock %}

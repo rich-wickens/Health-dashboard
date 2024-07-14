@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Dashboard</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>Latest Weight Entry</h3>
+                </div>
+                <div class="card-body">
+                    {% if latest_weight %}
+                        <p>Date: {{ latest_weight.date }}</p>
+                        <p>Height: {{ latest_weight.height }} meters</p>
+                        <p>Weight: {{ latest_weight.weight }} kg</p>
+                        <p>BMI: {{ latest_weight.bmi }}</p>
+                        <p>Category: {{ latest_weight.get_bmi_category }}</p>
+                        {% if latest_weight.waist_circumference %}
+                            <p>Waist Circumference: {{ latest_weight.waist_circumference }} cm</p>
+                            <p>
+                                Waist Circumference Healthy: 
+                                <span class="{% if latest_weight.is_waist_circumference_healthy %}text-success{% else %}text-danger{% endif %}">
+                                    {% if latest_weight.is_waist_circumference_healthy %}True{% else %}False{% endif %}
+                                </span>
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <p>No weight entries found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>Latest Smoking Entry</h3>
+                </div>
+                <div class="card-body">
+                    {% if latest_smoking %}
+                        <p>Start Date: {{ latest_smoking.start_date }}</p>
+                        <p>Quit Date: {{ latest_smoking.quit_date }}</p>
+                        <p>Cost per Pack: {{ latest_smoking.cost_per_pack }}</p>
+                        <p>Cigarettes per Day: {{ latest_smoking.cigarettes_per_day }}</p>
+                        <p>Time Since Quit: {{ latest_smoking.time_since_quit_breakdown.years_months_days_hours_minutes_seconds }}</p>
+                        <p>Money Saved: {{ latest_smoking.money_saved }}</p>
+                    {% else %}
+                        <p>No smoking entries found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
