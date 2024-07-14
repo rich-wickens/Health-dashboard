@@ -39,6 +39,8 @@ class SmokingSerializer(serializers.ModelSerializer):
 class WeightSerializer(serializers.ModelSerializer):
     bmi = serializers.FloatField(read_only=True)
     bmi_category = serializers.SerializerMethodField()
+    height = serializers.FloatField(help_text="Height in meters")
+    weight = serializers.FloatField(help_text="Weight in kilograms")
 
     class Meta:
         model = Weight

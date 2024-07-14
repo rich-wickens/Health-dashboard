@@ -164,7 +164,7 @@ class Weight(models.Model):
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date = models.DateField()
-    height = models.FloatField()  # height in meters
+    height = models.FloatField()  # height in meters 
     weight = models.FloatField()  # weight in kilograms
     bmi = models.FloatField(blank=True, null=True)
     ethnicity = models.CharField(max_length=50, choices=ETHNICITY_CHOICES, default=PREFER_NOT_TO_SAY)
