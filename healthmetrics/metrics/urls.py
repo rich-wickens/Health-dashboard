@@ -1,13 +1,14 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import smoking_create_view, smoking_list_view, SmokingViewSet, custom_login_view
+from .views import smoking_create_view, smoking_list_view, SmokingViewSet, custom_login_view, WeightViewSet
 
 
 
 # Create a router and register our viewsets with it
 router = DefaultRouter()
 router.register(r'smoking', SmokingViewSet, basename='smoking')
+router.register(r'weight', WeightViewSet, basename='weight')
 
 api_urlpatterns = [
     path('', include(router.urls)),
