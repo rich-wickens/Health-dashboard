@@ -167,7 +167,7 @@ class Weight(models.Model):
     height = models.FloatField()  # height in meters
     weight = models.FloatField()  # weight in kilograms
     bmi = models.FloatField(blank=True, null=True)
-    ethnicity = models.CharField(max_length=50, choices=ETHNICITY_CHOICES)
+    ethnicity = models.CharField(max_length=50, choices=ETHNICITY_CHOICES, default=PREFER_NOT_TO_SAY)
 
     def save(self, *args, **kwargs):
         self.bmi = self.calculate_bmi()
