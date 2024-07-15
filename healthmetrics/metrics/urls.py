@@ -11,6 +11,9 @@ from .views import (
     weight_create_view,
     weight_list_view,
     WeightViewSet,
+    activity_create_view,
+    activity_list_view,
+    ActivityViewSet
 
 )
 
@@ -18,6 +21,7 @@ from .views import (
 router = DefaultRouter()
 router.register(r'smoking', SmokingViewSet, basename='smoking')
 router.register(r'weight', WeightViewSet, basename='weight')
+router.register(r'activity', ActivityViewSet, basename='activity')
 
 api_urlpatterns = [
     path('', include(router.urls)),
@@ -33,6 +37,8 @@ template_urlpatterns = [
     path('smoking/list/', smoking_list_view, name='smoking_list'),
     path('weight/create/', weight_create_view, name='weight_create'),
     path('weight/list/', weight_list_view, name='weight_list'),
+    path('activity/create/', activity_create_view, name='activity_create'),
+    path('activity/list/', activity_list_view, name='activity_list'),
 ]
 
 urlpatterns = [

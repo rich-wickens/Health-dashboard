@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Activity List{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Activity List</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Duration (mins)</th>
+                <th>Distance (km)</th>
+                <th>Moderate Intensity Minutes</th>
+                <th>Vigorous Intensity Minutes</th>
+                <th>Total Intensity Minutes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %}
+            <tr>
+                <td>{{ activity.date }}</td>
+                <td>{{ activity.get_activity_type_display }}</td>
+                <td>{{ activity.duration }}</td>
+                <td>{{ activity.distance }}</td>
+                <td>{{ activity.intensity_minutes_moderate }}</td>
+                <td>{{ activity.intensity_minutes_vigorous }}</td>
+                <td>{{ activity.intensity_minutes_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

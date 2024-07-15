@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Smoking, Weight
+from .models import Smoking, Weight, Activity
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.contrib.auth.models import User
@@ -53,3 +53,18 @@ class WeightSerializer(serializers.ModelSerializer):
     
     def get_is_waist_circumference_healthy(self, obj):
         return obj.is_waist_circumference_healthy()
+    
+class ActivitySerializer(serializers.ModelSerializer):
+    duration = serializers.FloatField(help_text="Duration in minutes")
+    distance = serializers.FloatField(help_text="Distance in km")
+    intensity_minutes_moderate = serializers.FloatField(help_text="Moderate intesity minutes")
+    intensity_minutes_vigorous = serializers.FloatField(help_text="Vigorous intesity minutes")
+    intensity_minutes_total = serializers.FloatField()
+
+    class Meta:
+        model = Activity
+        fields = ['id', 'user', 'date', 'activity_type', 'duration', 'distance', 
+                'intensity_minutes_moderate', 'intensity_minutes_vigorous', 'intensity_minutes_total']
+
+    def get_intensity_minutes_total(self, obj):
+        return obj.intensity_minutes_total()

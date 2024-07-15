@@ -1,5 +1,5 @@
 from django import forms
-from .models import Smoking, Weight
+from .models import Smoking, Weight, Activity
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -39,6 +39,14 @@ class WeightForm(forms.ModelForm):
     class Meta:
         model = Weight
         fields = ['date', 'height', 'weight', 'ethnicity', 'waist_circumference']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class ActivityForm(forms.ModelForm):
+    class Meta:
+        model = Activity
+        fields = ['date', 'activity_type', 'duration', 'distance', 'intensity_minutes_moderate', 'intensity_minutes_vigorous']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }

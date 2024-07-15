@@ -223,11 +223,22 @@ class Weight(models.Model):
         return f"{self.user.username} - {self.date} - BMI: {self.bmi:.2f} - {self.get_bmi_category()}"
 
 class Activity(models.Model):
+    ACTIVITY_TYPES = [
+        ('run', 'Run'),
+        ('walk', 'Walk'),
+        ('cycle', 'Cycle'),
+    ]
+
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date = models.DateField()
-    steps = models.IntegerField()
-    distance_km = models.FloatField()
-    active_minutes = models.IntegerField()
+    activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPES)
+    duration = models.PositiveIntegerField()  # duration in minutes
+    distance = models.FloatField()  # distance in kilometers
+    intensity_minutes_moderate = models.PositiveIntegerField(default=0)
+    intensity_minutes_vigorous = models.PositiveIntegerField(default=0)
+
+    def intensity_minutes_total(self):
+        return self.intensity_minutes_moderate + 2 * self.intensity_minutes_vigorous
 
 class ResistanceTraining(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)

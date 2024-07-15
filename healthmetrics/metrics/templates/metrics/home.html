@@ -52,6 +52,22 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>Weekly Activity Totals</h3>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Total Duration: {{ total_duration }} minutes</li>
+                        <li>Total Distance: {{ total_distance }} km</li>
+                        <li>Moderate Intensity Minutes: {{ total_intensity_minutes_moderate }} minutes</li>
+                        <li>Vigorous Intensity Minutes: {{ total_intensity_minutes_vigorous }} minutes</li>
+                        <li>Total Intensity Minutes: {{ total_intensity_minutes }} minutes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
