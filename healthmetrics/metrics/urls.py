@@ -13,8 +13,13 @@ from .views import (
     WeightViewSet,
     activity_create_view,
     activity_list_view,
-    ActivityViewSet
-
+    ActivityViewSet,
+    profile_view,
+    disconnect_strava,
+    strava_callback,
+    fetch_strava_activities,
+    signup_view,
+    strava_login,
 )
 
 # Create a router and register our viewsets with it
@@ -39,9 +44,16 @@ template_urlpatterns = [
     path('weight/list/', weight_list_view, name='weight_list'),
     path('activity/create/', activity_create_view, name='activity_create'),
     path('activity/list/', activity_list_view, name='activity_list'),
+    path('profile/', profile_view, name='profile'),
+    path('accounts/profile/disconnect_strava/', disconnect_strava, name='disconnect_strava'),
+    path('accounts/', include('allauth.urls')),
+    path('accounts/strava/callback/', strava_callback, name='strava_callback'),
+    path('fetch-strava-activities/', fetch_strava_activities, name='fetch_strava_activities'),
+    path('strava/login/', strava_login, name='strava_login'),
 ]
 
 urlpatterns = [
     path('', include(template_urlpatterns)),
     path('api/', include(api_urlpatterns)),
+    path('accounts/', include('allauth.urls')),
 ]

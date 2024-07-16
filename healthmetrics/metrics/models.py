@@ -1,10 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 import calendar
+from django_countries.fields import CountryField
 
 class Smoking(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
@@ -281,3 +283,14 @@ class CoffeeDrinking(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date = models.DateField()
     cups_per_day = models.IntegerField()
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=30, blank=True)
+    surname = models.CharField(max_length=30, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    country_of_residency = CountryField(blank_label='(select country)', null=True, blank=True)
+    strava_connected = models.BooleanField(default=False)
+    strava_access_token = models.CharField(max_length=255, blank=True, null=True)
+
+User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])

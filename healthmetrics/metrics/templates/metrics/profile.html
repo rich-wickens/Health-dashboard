@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>User Profile</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_first_name">First name:</label>
+            {{ user_form.first_name }}
+        </div>
+        <div class="form-group">
+            <label for="id_last_name">Last name:</label>
+            {{ user_form.last_name }}
+        </div>
+        <div class="form-group">
+            <label for="id_email">Email:</label>
+            {{ user_form.email }}
+        </div>
+        <div class="form-group">
+            <label for="id_date_of_birth">Date of birth:</label>
+            {{ profile_form.date_of_birth }}
+        </div>
+        <div class="form-group">
+            <label for="id_country_of_residency">Country of Residency:</label>
+            {{ profile_form.country_of_residency }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+    <hr>
+    <h2>Strava Connection</h2>
+    {% if strava_connected %}
+        <p>Your account is connected to Strava.</p>
+        <form method="post" action="{% url 'disconnect_strava' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Disconnect Strava</button>
+        </form>
+    {% else %}
+        <a href="{% url 'strava_login' %}" class="btn btn-success">Connect to Strava</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,6 +1,8 @@
 from django import forms
-from .models import Smoking, Weight, Activity
+from .models import Smoking, Weight, Activity, Profile
 from django.core.exceptions import ValidationError
+from django_countries.widgets import CountrySelectWidget
+from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 
 class SmokingForm(forms.ModelForm):
@@ -49,4 +51,25 @@ class ActivityForm(forms.ModelForm):
         fields = ['date', 'activity_type', 'duration', 'distance', 'intensity_minutes_moderate', 'intensity_minutes_vigorous']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+class SignupForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, label=_('Password'))
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'password']
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['date_of_birth', 'country_of_residency']
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+            'country_of_residency': CountrySelectWidget()
         }

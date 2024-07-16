@@ -1,16 +1,23 @@
+import requests
 from rest_framework import viewsets
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from .models import Smoking, Weight, Activity
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from .models import Smoking, Weight, Activity, Profile
 from .serializers import SmokingSerializer, WeightSerializer, ActivitySerializer
-from .forms import SmokingForm, WeightForm, ActivityForm
+from .forms import SmokingForm, WeightForm, ActivityForm, UserForm, ProfileForm, SignupForm
 from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
 from django.urls import reverse
 from django.db.models import Sum
 from django.utils.timezone import now
 from datetime import timedelta
+from allauth.socialaccount.models import SocialAccount, SocialToken, SocialApp
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.strava.views import StravaOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView, OAuth2CallbackView
 
 def custom_login_view(request):
     if request.method == 'POST':
@@ -140,3 +147,131 @@ class ActivityViewSet(viewsets.ModelViewSet):
 def activity_list_view(request):
     activities = Activity.objects.filter(user=request.user).order_by('-date')
     return render(request, 'metrics/activity/activity_list.html', {'activities': activities})
+
+class StravaLogin(OAuth2LoginView):
+    adapter_class = StravaOAuth2Adapter
+    callback_url = 'http://127.0.0.1:8000/accounts/strava/callback/' 
+    client_class = OAuth2Client
+
+class StravaCallback(OAuth2CallbackView):
+    adapter_class = StravaOAuth2Adapter
+    client_class = OAuth2Client
+
+# def strava_login(request):
+#     return redirect('/accounts/strava/login/')
+
+def strava_login(request):
+    return StravaLogin.as_view()(request)
+
+# Sign up view
+def signup_view(request):
+    if request.method == 'POST':
+        user_form = SignupForm(request.POST)
+        profile_form = ProfileForm(request.POST)
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save(commit=False)
+            user.set_password(user_form.cleaned_data['password'])
+            user.save()
+            profile = profile_form.save(commit=False)
+            profile.user = user
+            profile.save()
+
+            # Set backend attribute for the user
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+            return redirect('home')
+    else:
+        user_form = SignupForm()
+        profile_form = ProfileForm()
+    return render(request, 'metrics/signup.html', {'user_form': user_form, 'profile_form': profile_form})
+
+@login_required
+def profile_view(request):
+    user = request.user
+    profile, _ = Profile.objects.get_or_create(user=user)
+    strava_connected = SocialAccount.objects.filter(user=user, provider='strava').exists()
+
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=user)
+        profile_form = ProfileForm(request.POST, instance=profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('profile')
+    else:
+        user_form = UserForm(instance=user)
+        profile_form = ProfileForm(instance=profile)
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'strava_connected': strava_connected,
+    }
+    return render(request, 'metrics/profile.html', context)
+
+# Disconnect Strava view
+@login_required
+def disconnect_strava(request):
+    user = request.user
+    try:
+        social_account = SocialAccount.objects.get(user=user, provider='strava')
+        social_account.delete()
+        user.profile.strava_connected = False
+        user.profile.strava_access_token = ''
+        user.profile.save()
+    except ObjectDoesNotExist:
+        pass
+    return redirect('profile')
+
+# Strava callback view
+@login_required
+def strava_callback(request):
+    code = request.GET.get('code')
+    client_id = settings.SOCIALACCOUNT_PROVIDERS['strava']['APP']['client_id']
+    client_secret = settings.SOCIALACCOUNT_PROVIDERS['strava']['APP']['secret']
+
+    response = requests.post(
+        'https://www.strava.com/oauth/token',
+        data={
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'code': code,
+            'grant_type': 'authorization_code'
+        }
+    )
+    token_data = response.json()
+    if 'access_token' in token_data:
+        access_token = token_data['access_token']
+        # Save the access token to the user's profile
+        request.user.profile.strava_access_token = access_token
+        request.user.profile.strava_connected = True
+        request.user.profile.save()
+        return redirect('home')
+    else:
+        return render(request, 'error.html', {'message': 'Authentication with Strava failed.'})
+
+# Fetch Strava activities view
+@login_required
+def fetch_strava_activities(request):
+    access_token = request.user.profile.strava_access_token
+    response = requests.get(
+        'https://www.strava.com/api/v3/athlete/activities',
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+    activities = response.json()
+
+    # Process and save activities to your database
+    for activity in activities:
+        Activity.objects.create(
+            user=request.user,
+            date=activity['start_date'],
+            activity_type=activity['type'].lower(),
+            duration=activity['elapsed_time'] / 60,  # Convert to minutes
+            distance=activity['distance'] / 1000,  # Convert to kilometers
+            intensity_minutes_moderate=activity.get('average_speed', 0),  # Example, update based on actual data
+            intensity_minutes_vigorous=activity.get('average_speed', 0) * 2  # Example, update based on actual data
+        )
+
+    return redirect('profile')
