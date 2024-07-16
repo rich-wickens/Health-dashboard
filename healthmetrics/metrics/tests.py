@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from datetime import date
 from decimal import Decimal
-from .models import Smoking, Weight
+from .models import Smoking, Weight, Activity
 from freezegun import freeze_time
 from django.core.exceptions import ValidationError
 
@@ -217,3 +217,158 @@ class WeightModelTests(TestCase):
         )
         with self.assertRaises(ValidationError):
             weight_entry.save()        
+
+class ActivityModelTests(TestCase):
+
+    def setUp(self):
+        # Create a test user for the activity instances
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+    def test_intensity_minutes_total(self):
+        # Create an activity instance
+        activity = Activity.objects.create(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=45,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure the total intensity minutes calculation is correct
+        self.assertEqual(activity.intensity_minutes_total(), 60)
+
+    def test_string_representation(self):
+        # Create an activity instance
+        activity = Activity.objects.create(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=45,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Verify the string representation of the activity instance
+        expected_str = f"{self.user.username} - {activity.date} - Run"
+        self.assertEqual(str(activity), expected_str)
+
+    def test_activity_type_choices(self):
+        # Attempt to create an activity instance with an invalid activity type
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='invalid',  # Invalid activity type
+            duration=60,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure that saving an activity with an invalid activity type raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_duration_zero_validation(self):
+        # Attempt to create an activity instance with a duration of zero
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=0,  # Invalid duration (zero)
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure that saving an activity with a duration of zero raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_negative_duration_validation(self):
+        # Attempt to create an activity instance with a negative duration
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=-60,  # Invalid duration (negative)
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure that saving an activity with a negative duration raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_negative_distance_validation(self):
+        # Attempt to create an activity instance with a negative distance
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=60,  # Duration in minutes
+            distance=-10.0,  # Invalid distance (negative)
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure that saving an activity with a negative distance raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_negative_intensity_minutes_moderate_validation(self):
+        # Attempt to create an activity instance with negative moderate intensity minutes
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=60,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=-30,  # Invalid moderate intensity minutes (negative)
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure that saving an activity with negative moderate intensity minutes raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_negative_intensity_minutes_vigorous_validation(self):
+        # Attempt to create an activity instance with negative vigorous intensity minutes
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=60,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=-15  # Invalid vigorous intensity minutes (negative)
+        )
+        # Ensure that saving an activity with negative vigorous intensity minutes raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_duration_greater_than_intensity_minutes_validation(self):
+        # Attempt to create an activity instance with duration greater than the sum of moderate and vigorous intensity minutes
+        activity = Activity(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=60,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=20,  # Moderate intensity minutes
+            intensity_minutes_vigorous=10  # Vigorous intensity minutes
+        )
+        # Ensure that saving an activity with duration greater than the sum of moderate and vigorous intensity minutes raises a ValidationError
+        with self.assertRaises(ValidationError):
+            activity.save()
+
+    def test_valid_duration_with_equal_intensity_minutes(self):
+        # Create an activity instance where duration equals the sum of moderate and vigorous intensity minutes
+        activity = Activity.objects.create(
+            user=self.user,
+            date=date.today(),
+            activity_type='run',  # Valid activity type
+            duration=45,  # Duration in minutes
+            distance=10.0,  # Distance in km
+            intensity_minutes_moderate=30,  # Moderate intensity minutes
+            intensity_minutes_vigorous=15  # Vigorous intensity minutes
+        )
+        # Ensure the activity instance is saved without raising a ValidationError
+        activity.clean()  # This should not raise any exceptions
+            

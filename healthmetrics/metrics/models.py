@@ -239,6 +239,35 @@ class Activity(models.Model):
 
     def intensity_minutes_total(self):
         return self.intensity_minutes_moderate + 2 * self.intensity_minutes_vigorous
+    
+    def clean(self):
+        # Validate duration
+        if self.duration <= 0:
+            raise ValidationError('Duration must be a positive integer.')
+        # Validate distance
+        if self.distance < 0:
+            raise ValidationError('Distance cannot be negative.')
+        # Validate moderate intensity minutes
+        if self.intensity_minutes_moderate < 0:
+            raise ValidationError('Moderate intensity minutes cannot be negative.')
+        # Validate vigorous intensity minutes
+        if self.intensity_minutes_vigorous < 0:
+            raise ValidationError('Vigorous intensity minutes cannot be negative.')
+        # Validate activity type
+        valid_activity_types = [choice[0] for choice in self.ACTIVITY_TYPES]
+        if self.activity_type not in valid_activity_types:
+            raise ValidationError('Invalid activity type.')
+        # Validate duration against total intensity minutes
+        total_intensity_minutes = self.intensity_minutes_moderate + self.intensity_minutes_vigorous
+        if self.duration > total_intensity_minutes:
+            raise ValidationError('Duration cannot be greater than the sum of moderate and vigorous intensity minutes.')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.date} - {self.get_activity_type_display()}"
 
 class ResistanceTraining(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
