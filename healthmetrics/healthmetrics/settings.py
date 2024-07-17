@@ -213,3 +213,8 @@ TEMPLATES = [
         },
     },
 ]
+
+LOGIN_REDIRECT_URL = '/profile/'
+
+# Add the path to our custom social account adapter
+SOCIALACCOUNT_ADAPTER = 'metrics.adapters.CustomSocialAccountAdapter'

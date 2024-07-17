@@ -157,8 +157,6 @@ class StravaCallback(OAuth2CallbackView):
     adapter_class = StravaOAuth2Adapter
     client_class = OAuth2Client
 
-# def strava_login(request):
-#     return redirect('/accounts/strava/login/')
 
 def strava_login(request):
     return StravaLogin.as_view()(request)

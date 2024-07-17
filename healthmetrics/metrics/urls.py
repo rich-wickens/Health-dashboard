@@ -38,6 +38,7 @@ template_urlpatterns = [
     path('', home_view, name='home'),
     path('login/', custom_login_view, name='login'),
     path('logout/', custom_logout_view, name='logout'),
+    path('signup/', signup_view, name='signup'),
     path('smoking/create/', smoking_create_view, name='smoking_create'),
     path('smoking/list/', smoking_list_view, name='smoking_list'),
     path('weight/create/', weight_create_view, name='weight_create'),
@@ -47,7 +48,7 @@ template_urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('accounts/profile/disconnect_strava/', disconnect_strava, name='disconnect_strava'),
     path('accounts/', include('allauth.urls')),
-    path('accounts/strava/callback/', strava_callback, name='strava_callback'),
+    path('strava/callback/', strava_callback, name='strava_callback'),
     path('fetch-strava-activities/', fetch_strava_activities, name='fetch_strava_activities'),
     path('strava/login/', strava_login, name='strava_login'),
 ]
