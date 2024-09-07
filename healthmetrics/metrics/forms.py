@@ -44,6 +44,11 @@ class WeightForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
+        labels = {
+            'height': _('Height (cm)'),
+            'weight': _('Weight (kg)'),
+            'waist_circumference': _('Waist (cm)'),
+        }
 
 class ActivityForm(forms.ModelForm):
     class Meta:
@@ -51,6 +56,14 @@ class ActivityForm(forms.ModelForm):
         fields = ['date', 'activity_type', 'duration', 'distance', 'intensity_minutes_moderate', 'intensity_minutes_vigorous']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
+        }
+        labels = {
+            'duration': _('Duration (mins)'),
+            'distance': _('Distance (KM)'),
+        }
+        help_texts = {
+            'intensity_minutes_moderate': _('This would be walking hard, cycling moderate and running easy (jogging) for most people.'),
+            'intensity_minutes_vigorous': _('This is cycling uphill, running moderately to hard. Most people cannot hold a conversation here.'),
         }
 
 class UserForm(forms.ModelForm):

@@ -1,8 +1,9 @@
 import requests
+import logging
 from rest_framework import viewsets
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from .models import Smoking, Weight, Activity, Profile
@@ -13,11 +14,12 @@ from django.contrib import messages
 from django.urls import reverse
 from django.db.models import Sum
 from django.utils.timezone import now
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from allauth.socialaccount.models import SocialAccount, SocialToken, SocialApp
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from allauth.socialaccount.providers.strava.views import StravaOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView, OAuth2CallbackView
+from django.http import JsonResponse
 
 def custom_login_view(request):
     if request.method == 'POST':
@@ -98,6 +100,19 @@ def smoking_list_view(request):
     return render(request, 'metrics/smoking/smoking_list.html', {'smokings': smokings})
 
 @login_required
+def smoking_edit_view(request, id):
+    smoking = get_object_or_404(Smoking, id=id)
+    if request.method == 'POST':
+        form = SmokingForm(request.POST, instance=smoking)
+        if form.is_valid():
+            form.save()
+            return redirect('smoking_list')
+    else:
+        form = SmokingForm(instance=smoking)
+    
+    return render(request, 'metrics/smoking/smoking_edit.html', {'form': form})
+
+@login_required
 def weight_create_view(request):
     if request.method == 'POST':
         form = WeightForm(request.POST)
@@ -127,14 +142,28 @@ class WeightViewSet(viewsets.ModelViewSet):
         return Weight.objects.filter(user=user)
     
 @login_required
+def weight_edit_view(request, id):
+    weight = get_object_or_404(Weight, id=id)
+    if request.method == 'POST':
+        form = WeightForm(request.POST, instance=weight)
+        if form.is_valid():
+            form.save()
+            return redirect('weight_list')
+    else:
+        form = WeightForm(instance=weight)
+    
+    return render(request, 'metrics/weight/weight_edit.html', {'form': form})
+    
+@login_required
 def activity_create_view(request):
     if request.method == 'POST':
         form = ActivityForm(request.POST)
         if form.is_valid():
             activity =   form.save(commit=False)
             activity.user = request.user
+            activity.duration = form.cleaned_data['duration']
             activity.save()
-            return redirect('home')  # Redirect to the dashboard or another page
+            return redirect('home')
     else:
         form = ActivityForm()
     return render(request, 'metrics/activity/activity_form.html', {'form': form})
@@ -160,6 +189,19 @@ class StravaCallback(OAuth2CallbackView):
 
 def strava_login(request):
     return StravaLogin.as_view()(request)
+
+@login_required
+def activity_edit_view(request, id):
+    activity = get_object_or_404(Activity, id=id)
+    if request.method == 'POST':
+        form = ActivityForm(request.POST, instance=activity)
+        if form.is_valid():
+            form.save()
+            return redirect('activity_list')
+    else:
+        form = ActivityForm(instance=activity)
+    
+    return render(request, 'metrics/activity/activity_edit.html', {'form': form})
 
 # Sign up view
 def signup_view(request):
@@ -227,6 +269,9 @@ def disconnect_strava(request):
 @login_required
 def strava_callback(request):
     code = request.GET.get('code')
+    if not code:
+        return JsonResponse({'error': 'Missing code in the callback'}, status=400)
+
     client_id = settings.SOCIALACCOUNT_PROVIDERS['strava']['APP']['client_id']
     client_secret = settings.SOCIALACCOUNT_PROVIDERS['strava']['APP']['secret']
 
@@ -239,16 +284,49 @@ def strava_callback(request):
             'grant_type': 'authorization_code'
         }
     )
+
     token_data = response.json()
+
+    # Log the token data for debugging
+    logger.debug("Token Data from Strava: %s", token_data)
+
     if 'access_token' in token_data:
+        # Save tokens
         access_token = token_data['access_token']
-        # Save the access token to the user's profile
-        request.user.profile.strava_access_token = access_token
-        request.user.profile.strava_connected = True
-        request.user.profile.save()
-        return redirect('home')
+        refresh_token = token_data['refresh_token']
+        expires_at = datetime.utcfromtimestamp(token_data['expires_at']).replace(tzinfo=timezone.utc)
+
+        # Get or create the social account and token
+        social_app = SocialApp.objects.get(provider='strava')
+        social_account, created = SocialAccount.objects.get_or_create(user=request.user, provider='strava')
+        social_token, created = SocialToken.objects.get_or_create(account=social_account, app=social_app)
+        
+        social_token.token = access_token
+        social_token.token_secret = refresh_token
+        social_token.expires_at = expires_at
+        social_token.save()
+
+        # Save to profile (if you have a Profile model)
+        profile = request.user.profile
+        profile.strava_access_token = access_token
+        profile.strava_refresh_token = refresh_token
+        profile.strava_expires_at = expires_at
+        profile.save()
+
+        return redirect('profile')
     else:
-        return render(request, 'error.html', {'message': 'Authentication with Strava failed.'})
+        logger.error("Failed to fetch access token from Strava: %s", token_data)
+        return JsonResponse({'error': 'Failed to fetch access token from Strava', 'details': token_data}, status=400)
+    # token_data = response.json()
+    # if 'access_token' in token_data:
+    #     access_token = token_data['access_token']
+    #     # Save the access token to the user's profile
+    #     request.user.profile.strava_access_token = access_token
+    #     request.user.profile.strava_connected = True
+    #     request.user.profile.save()
+    #     return redirect('profile')
+    # else:
+    #     return render(request, 'error.html', {'message': 'Authentication with Strava failed.'})
 
 # Fetch Strava activities view
 @login_required
@@ -273,3 +351,17 @@ def fetch_strava_activities(request):
         )
 
     return redirect('profile')
+
+#debug function
+@login_required
+def fetch_and_print_strava_activities(request):
+    access_token = request.user.profile.strava_access_token
+    response = requests.get(
+        'https://www.strava.com/api/v3/athlete/activities',
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+
+    activities = response.json()
+    print(activities)  # Print activities to the console for debugging
+
+    return JsonResponse({'activities': activities})  # Return activities as JSON

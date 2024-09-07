@@ -232,6 +232,7 @@ class Activity(models.Model):
     ]
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    strava_activity_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     date = models.DateField()
     activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPES)
     duration = models.PositiveIntegerField()  # duration in minutes
@@ -292,5 +293,7 @@ class Profile(models.Model):
     country_of_residency = CountryField(blank_label='(select country)', null=True, blank=True)
     strava_connected = models.BooleanField(default=False)
     strava_access_token = models.CharField(max_length=255, blank=True, null=True)
+    strava_refresh_token = models.CharField(max_length=255, blank=True, null=True)
+    strava_expires_at = models.DateTimeField(null=True, blank=True)
 
 User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])

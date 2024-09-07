@@ -187,7 +187,11 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': '113689',
             'secret': 'e10e4e7383bc20b4373837063ee3a41240a9cb8e',
             'key': ''
-        }
+        },
+        'SCOPE': ['activity:read'],
+        'AUTH_PARAMS': {
+            'approval_prompt': 'force',
+        },
     }
 }
 
@@ -218,3 +222,40 @@ LOGIN_REDIRECT_URL = '/profile/'
 
 # Add the path to our custom social account adapter
 SOCIALACCOUNT_ADAPTER = 'metrics.adapters.CustomSocialAccountAdapter'
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'fetch-strava-activities-every-15-minutes': {
+        'task': 'metrics.tasks.fetch_strava_activities',
+        'schedule': crontab(minute='*/15'),  # every 15 minutes
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}

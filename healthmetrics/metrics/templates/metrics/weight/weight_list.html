@@ -39,6 +39,9 @@
                                     N/A
                                 {% endif %}
                             </td>
+                            <td>
+                                <a href="{% url 'weight_edit' weight.id %}" class="btn btn-sm btn-primary">Edit</a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

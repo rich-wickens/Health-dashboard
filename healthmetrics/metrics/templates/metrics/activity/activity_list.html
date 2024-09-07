@@ -27,6 +27,9 @@
                 <td>{{ activity.intensity_minutes_moderate }}</td>
                 <td>{{ activity.intensity_minutes_vigorous }}</td>
                 <td>{{ activity.intensity_minutes_total }}</td>
+                <td>
+                    <a href="{% url 'activity_edit' activity.id %}" class="btn btn-sm btn-primary">Edit</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

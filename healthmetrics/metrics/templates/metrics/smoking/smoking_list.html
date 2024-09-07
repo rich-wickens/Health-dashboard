@@ -26,6 +26,9 @@
                 <td>{{ smoking.cigarettes_per_day }}</td>
                 <td>{{ smoking.time_since_quit_breakdown.years_months_days_hours_minutes_seconds }}</td>
                 <td>{{ smoking.money_saved }}</td>
+                <td>
+                    <a href="{% url 'smoking_edit' smoking.id %}" class="btn btn-sm btn-primary">Edit</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
