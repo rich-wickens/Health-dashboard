@@ -8,12 +8,10 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         # Ensure this method is only used for new social logins
         if sociallogin.is_existing:
             return
-
         # Check if a user is already logged in
         if request.user.is_authenticated:
             # Get the current logged-in user
             current_user = request.user
-
             # Check if a SocialAccount already exists for this user and provider
             try:
                 existing_account = SocialAccount.objects.get(user=current_user, provider=sociallogin.account.provider)
@@ -23,5 +21,5 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 # Associate the social account with the currently logged-in user
                 sociallogin.connect(request, current_user)
         else:
-            # If no user is logged in, do nothing special
+            # If no user is logged in, do nothing
             pass

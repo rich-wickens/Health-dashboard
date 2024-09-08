@@ -287,9 +287,6 @@ def strava_callback(request):
 
     token_data = response.json()
 
-    # Log the token data for debugging
-    logger.debug("Token Data from Strava: %s", token_data)
-
     if 'access_token' in token_data:
         # Save tokens
         access_token = token_data['access_token']
@@ -315,18 +312,7 @@ def strava_callback(request):
 
         return redirect('profile')
     else:
-        logger.error("Failed to fetch access token from Strava: %s", token_data)
         return JsonResponse({'error': 'Failed to fetch access token from Strava', 'details': token_data}, status=400)
-    # token_data = response.json()
-    # if 'access_token' in token_data:
-    #     access_token = token_data['access_token']
-    #     # Save the access token to the user's profile
-    #     request.user.profile.strava_access_token = access_token
-    #     request.user.profile.strava_connected = True
-    #     request.user.profile.save()
-    #     return redirect('profile')
-    # else:
-    #     return render(request, 'error.html', {'message': 'Authentication with Strava failed.'})
 
 # Fetch Strava activities view
 @login_required
@@ -338,7 +324,7 @@ def fetch_strava_activities(request):
     )
     activities = response.json()
 
-    # Process and save activities to your database
+    # Process and save activities to the database
     for activity in activities:
         Activity.objects.create(
             user=request.user,
